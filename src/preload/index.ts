@@ -52,6 +52,10 @@ const api = {
     ipcRenderer.removeAllListeners('group-switched')
   },
 
+  // Windows keyboard guard: temporarily suspend while editing text inside DreamCode.
+  keyboardGuardSetInputPaused: (paused: boolean) =>
+    ipcRenderer.invoke('keyboardGuard:setInputPaused', paused),
+
   // Update app state
   updateAppState: (state: Partial<AppState>) => ipcRenderer.invoke('updateAppState', state),
   // Listen for app state
