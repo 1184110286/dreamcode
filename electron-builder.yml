@@ -17,6 +17,9 @@ asarUnpack:
   - node_modules/application-loopback/bin/**
 win:
   executableName: DreamCode
+  extraResources:
+    - from: resources/bin/windows-keyboard-guard.exe
+      to: bin/windows-keyboard-guard.exe
   target:
     - nsis
     - portable
