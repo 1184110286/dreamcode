@@ -51,6 +51,33 @@ export default function App() {
     }
   }, [])
 
+  // Pause the Windows keyboard guard only while this app is actually focused in a text editor.
+  useEffect(() => {
+    const isEditable = (element: Element | null) => {
+      if (!element) return false
+      if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) return true
+      return element instanceof HTMLElement && element.isContentEditable
+    }
+    const syncGuardPause = () => {
+      window.api.keyboardGuardSetInputPaused(document.hasFocus() && isEditable(document.activeElement))
+    }
+    const syncGuardPauseSoon = () => queueMicrotask(syncGuardPause)
+
+    document.addEventListener('focusin', syncGuardPause)
+    document.addEventListener('focusout', syncGuardPauseSoon)
+    window.addEventListener('focus', syncGuardPause)
+    window.addEventListener('blur', syncGuardPause)
+    syncGuardPause()
+
+    return () => {
+      document.removeEventListener('focusin', syncGuardPause)
+      document.removeEventListener('focusout', syncGuardPauseSoon)
+      window.removeEventListener('focus', syncGuardPause)
+      window.removeEventListener('blur', syncGuardPause)
+      window.api.keyboardGuardSetInputPaused(false)
+    }
+  }, [])
+
   // Apply opacity globally across all routes
   useEffect(() => {
     document.body.style.opacity = settingsStore.opacity.toString()
