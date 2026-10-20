@@ -21,7 +21,7 @@ $devShell = Join-Path $install "Common7\Tools\Microsoft.VisualStudio.DevShell.dl
 Import-Module $devShell
 Enter-VsDevShell -VsInstallPath $install -SkipAutomaticLocation -DevCmdArguments "-arch=x64 -host_arch=x64" | Out-Null
 
-& cl.exe /nologo /O2 /W4 /DUNICODE /D_UNICODE $source /Fe:$output user32.lib
+& cl.exe /nologo /O2 /W4 /MT /DUNICODE /D_UNICODE $source /Fe:$output user32.lib
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to build windows-keyboard-guard.exe"
 }
