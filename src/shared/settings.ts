@@ -27,6 +27,12 @@ export interface PromptGroup extends PromptConfig {
 export type VoiceAudioSource = 'system'
 export type VoiceLlmMode = 'shared' | 'custom'
 
+export interface KeyboardGuardConfig {
+  enabled: boolean
+  blockLeftCtrl: boolean
+  blockRightCtrl: boolean
+}
+
 /**
  * Speech-to-text service. All but `grok2api` speak the OpenAI-compatible
  * POST {apiBaseURL}/audio/transcriptions; `grok2api` uses POST {apiBaseURL}/stt.
@@ -113,6 +119,7 @@ export interface AppConfig extends ProviderConfig, PromptConfig {
   activeProviderGroupId: string
   activePromptGroupId: string
   voice: VoiceConfig
+  keyboardGuard: KeyboardGuardConfig
 }
 
 export const defaultProviderConfig: ProviderConfig = {
@@ -158,6 +165,12 @@ export const defaultVoiceConfig: VoiceConfig = {
   autoOpenPage: true
 }
 
+export const defaultKeyboardGuardConfig: KeyboardGuardConfig = {
+  enabled: false,
+  blockLeftCtrl: true,
+  blockRightCtrl: false
+}
+
 export function createProviderGroup(
   index = 0,
   config: ProviderConfig = defaultProviderConfig
@@ -200,11 +213,28 @@ export const defaultConfig: AppConfig = {
   ],
   activeProviderGroupId: 'provider-1',
   activePromptGroupId: 'prompt-1',
-  voice: defaultVoiceConfig
+  voice: defaultVoiceConfig,
+  keyboardGuard: defaultKeyboardGuardConfig
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null
+}
+
+export function normalizeKeyboardGuardConfig(value: unknown): KeyboardGuardConfig {
+  const source = isRecord(value) ? value : {}
+  return {
+    enabled:
+      typeof source.enabled === 'boolean' ? source.enabled : defaultKeyboardGuardConfig.enabled,
+    blockLeftCtrl:
+      typeof source.blockLeftCtrl === 'boolean'
+        ? source.blockLeftCtrl
+        : defaultKeyboardGuardConfig.blockLeftCtrl,
+    blockRightCtrl:
+      typeof source.blockRightCtrl === 'boolean'
+        ? source.blockRightCtrl
+        : defaultKeyboardGuardConfig.blockRightCtrl
+  }
 }
 
 function normalizeProviderConfig(value: unknown, fallback: ProviderConfig): ProviderConfig {
@@ -399,7 +429,8 @@ export function normalizeConfig(value: unknown): AppConfig {
     promptGroups: normalizedPromptGroups,
     activeProviderGroupId,
     activePromptGroupId,
-    voice: normalizeVoiceConfig(source.voice)
+    voice: normalizeVoiceConfig(source.voice),
+    keyboardGuard: normalizeKeyboardGuardConfig(source.keyboardGuard)
   }
 }
 
