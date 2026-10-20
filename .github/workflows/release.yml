@@ -18,7 +18,7 @@ jobs:
         include:
           - name: windows
             runner: windows-latest
-            build_script: build:win
+            build_script: build
             artifact_name: electron-build-windows
           - name: macos-x64
             runner: macos-15-intel
@@ -51,8 +51,23 @@ jobs:
             -framework CoreServices \
             -o resources/bin/capture-below
 
-      - name: Package Electron app
+      - name: Build Windows keyboard guard helper
+        if: matrix.name == 'windows'
+        shell: powershell
+        run: ./scripts/build-windows-keyboard-guard.ps1
+
+      - name: Build application
         run: npm run ${{ matrix.build_script }}
+
+      - name: Package Electron app
+        if: matrix.name == 'windows'
+        run: npx electron-builder --win
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Package macOS app
+        if: startsWith(matrix.name, 'macos-')
+        run: npx electron-builder --mac
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
