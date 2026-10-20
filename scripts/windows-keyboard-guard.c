@@ -231,6 +231,9 @@ int main(int argc, char **argv) {
     return 2;
   }
 
+  printf("READY\n");
+  fflush(stdout);
+
   MSG message;
   while (GetMessageW(&message, NULL, 0, 0) > 0) {
     TranslateMessage(&message);
