@@ -7,6 +7,7 @@ import { Slider } from '@/components/ui/slider'
 import { useSettingsStore } from '@/lib/store/settings'
 import { CustomShortcuts, ResetDefaultShortcuts } from './CustomShortcuts'
 import { GroupSettings } from './GroupSettings'
+import { KeyboardGuardSettings } from './KeyboardGuardSettings'
 import { VoiceSettings } from './VoiceSettings'
 
 export default function SettingsPage() {
@@ -21,6 +22,7 @@ export default function SettingsPage() {
   const [opacity, setOpacity] = useState(settingsStore.opacity)
   const [fontSize, setFontSize] = useState(settingsStore.fontSize)
   const [voice, setVoice] = useState(settingsStore.voice)
+  const [keyboardGuard, setKeyboardGuard] = useState(settingsStore.keyboardGuard)
 
   const [isSaving, setIsSaving] = useState(false)
   const saving = useRef(false)
@@ -58,11 +60,24 @@ export default function SettingsPage() {
       promptGroups,
       activeProviderGroupId: activeProvider.id,
       activePromptGroupId: activePrompt.id,
-      voice
+      voice,
+      keyboardGuard
     }
     await settingsStore.saveSettings(newSettings)
     settingsStore.updateSetting('opacity', opacity)
     settingsStore.updateSetting('fontSize', fontSize)
+  }
+
+  const handleKeyboardGuardChange = async (next: typeof keyboardGuard): Promise<void> => {
+    const previous = keyboardGuard
+    setKeyboardGuard(next)
+    try {
+      await settingsStore.saveSettings({ keyboardGuard: next })
+    } catch (error) {
+      setKeyboardGuard(previous)
+      toast.error(error instanceof Error ? error.message : '键盘防护设置保存失败，请重试')
+      throw error
+    }
   }
 
   const handleSave = async (): Promise<void> => {
@@ -176,6 +191,8 @@ export default function SettingsPage() {
           </h2>
           <CustomShortcuts />
         </div>
+
+        <KeyboardGuardSettings value={keyboardGuard} onChange={handleKeyboardGuardChange} />
 
         <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50">
           <h2 className="text-lg font-semibold mb-4 flex items-center">

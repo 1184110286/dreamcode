@@ -1,6 +1,7 @@
 import { ipcMain } from 'electron'
 import { loadConfig, saveConfig } from './config'
 import { normalizeConfig, type AppConfig } from '../shared/settings'
+import { setKeyboardGuardConfig } from './keyboard-guard'
 
 export type AppSettings = AppConfig & {
   opacity: number
@@ -17,6 +18,8 @@ export const settings: AppSettings = {
   ...loadConfig(),
   opacity: 0.8
 }
+
+setKeyboardGuardConfig(settings.keyboardGuard)
 
 function saveCurrentSettings() {
   saveConfig(normalizeConfig(settings))
@@ -116,6 +119,7 @@ ipcMain.handle('updateAppSettings', (_event, incoming: Partial<AppSettings>) => 
       )
     }
     Object.assign(settings, normalizeConfig(settings))
+    setKeyboardGuardConfig(settings.keyboardGuard)
     saveCurrentSettings()
     notifySettingsChanged()
     return settings

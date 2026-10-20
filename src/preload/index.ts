@@ -3,7 +3,7 @@ import { contextBridge, ipcRenderer, webFrame } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 import type { AppSettings } from '../main/settings'
 import type { AppState } from '../main/state'
-import type { VoiceConfig } from '../shared/settings'
+import type { KeyboardGuardStatus, VoiceConfig } from '../shared/settings'
 import type {
   AudioApp,
   VoiceCaptureCommand,
@@ -50,6 +50,17 @@ const api = {
   },
   removeGroupSwitchedListener: () => {
     ipcRenderer.removeAllListeners('group-switched')
+  },
+
+  // Windows keyboard guard
+  keyboardGuardGetStatus: (): Promise<KeyboardGuardStatus> =>
+    ipcRenderer.invoke('keyboardGuard:getStatus'),
+  keyboardGuardSetInputPaused: (paused: boolean) =>
+    ipcRenderer.invoke('keyboardGuard:setInputPaused', paused),
+  onKeyboardGuardStatus: (callback: (status: KeyboardGuardStatus) => void) => {
+    const listener = (_event: unknown, status: KeyboardGuardStatus): void => callback(status)
+    ipcRenderer.on('keyboard-guard-status', listener)
+    return () => ipcRenderer.removeListener('keyboard-guard-status', listener)
   },
 
   // Update app state

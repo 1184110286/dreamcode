@@ -9,6 +9,10 @@ import {
 import { state } from './state'
 import { activatePromptGroupAt, activateProviderGroupAt } from './settings'
 import * as voice from './voice'
+import {
+  setKeyboardGuardActionHandler,
+  setKeyboardGuardShortcuts
+} from './keyboard-guard'
 
 type Shortcut = {
   action: string
@@ -223,6 +227,14 @@ const callbacks: Record<string, () => void> = {
   }
 }
 
+setKeyboardGuardActionHandler((action) => {
+  const callback = callbacks[action]
+  if (!callback) return
+  Promise.resolve(callback()).catch((error) => {
+    console.error(`Error running guarded shortcut "${action}":`, error)
+  })
+})
+
 for (let index = 0; index < 12; index += 1) {
   callbacks[`switchToProviderGroup${index + 1}`] = () => {
     activateProviderGroupAt(index)
@@ -306,6 +318,7 @@ ipcMain.handle(
     // 渲染进程上报的是完整配置：除了注册新增/变更项，还要释放已从配置里移除的动作，
     // 否则废弃动作会一直占着旧按键，直到主进程重启。
     Object.entries(nextShortcuts).forEach(([action, { key }]) => registerShortcut(action, key))
+    setKeyboardGuardShortcuts(Object.values(nextShortcuts))
     Object.keys(shortcuts).forEach((action) => {
       if (nextShortcuts[action]) return
       unregisterShortcut(action)
@@ -320,6 +333,7 @@ ipcMain.handle('updateShortcuts', (_event, _shortcuts: { action: string; key: st
       registerShortcut(shortcut.action, shortcut.key)
     }
   })
+  setKeyboardGuardShortcuts(Object.values(shortcuts).map(({ action, key }) => ({ action, key })))
 })
 
 ipcMain.handle('stopSolutionStream', () => {

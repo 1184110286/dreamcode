@@ -2,13 +2,15 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import {
   defaultConfig,
+  normalizeKeyboardGuardConfig,
   normalizeVoiceConfig,
+  type KeyboardGuardConfig,
   type ProviderGroup,
   type PromptGroup,
   type VoiceConfig
 } from '../../../../shared/settings'
 
-export type { ProviderGroup, PromptGroup, VoiceConfig }
+export type { KeyboardGuardConfig, ProviderGroup, PromptGroup, VoiceConfig }
 
 interface Settings {
   apiProvider: 'openai' | 'anthropic'
@@ -29,6 +31,7 @@ interface Settings {
   activeProviderGroupId: string
   activePromptGroupId: string
   voice: VoiceConfig
+  keyboardGuard: KeyboardGuardConfig
 }
 
 type AppearanceSettings = Pick<Settings, 'theme' | 'opacity' | 'fontSize'>
@@ -59,7 +62,8 @@ const defaultSettings: Settings = {
   promptGroups: defaultConfig.promptGroups.map((group) => ({ ...group })),
   activeProviderGroupId: defaultConfig.activeProviderGroupId,
   activePromptGroupId: defaultConfig.activePromptGroupId,
-  voice: normalizeVoiceConfig(defaultConfig.voice)
+  voice: normalizeVoiceConfig(defaultConfig.voice),
+  keyboardGuard: normalizeKeyboardGuardConfig(defaultConfig.keyboardGuard)
 }
 
 export const useSettingsStore = create<SettingsStore>()(
@@ -89,11 +93,15 @@ export const useSettingsStore = create<SettingsStore>()(
     }),
     {
       name: 'dreamcode-settings',
-      version: 8,
+      version: 9,
       migrate: (persisted: unknown) => {
-        // v8 added the voice assistant block; keep everything else the user had.
+        // v8 added voice; v9 adds the Windows keyboard guard block.
         const state = (persisted ?? {}) as Partial<Settings>
-        return { ...state, voice: normalizeVoiceConfig(state.voice) } as SettingsStore
+        return {
+          ...state,
+          voice: normalizeVoiceConfig(state.voice),
+          keyboardGuard: normalizeKeyboardGuardConfig(state.keyboardGuard)
+        } as SettingsStore
       }
     }
   )

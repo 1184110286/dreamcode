@@ -31,6 +31,7 @@ import './shortcuts'
 import { createWindow } from './main-window'
 import { initVoice } from './voice'
 import { initAutoUpdater } from './auto-updater'
+import { disposeKeyboardGuard } from './keyboard-guard'
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -69,7 +70,12 @@ app.whenReady().then(() => {
 app.on('window-all-closed', () => {
   // Unregister all shortcuts when there is no window left
   globalShortcut.unregisterAll()
+  disposeKeyboardGuard()
   if (process.platform !== 'darwin') {
     app.quit()
   }
+})
+
+app.on('before-quit', () => {
+  disposeKeyboardGuard()
 })
