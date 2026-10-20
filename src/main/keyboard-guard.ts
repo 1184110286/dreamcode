@@ -1,5 +1,5 @@
 import { app, ipcMain } from 'electron'
-import { spawn, type ChildProcessWithoutNullStreams } from 'node:child_process'
+import { spawn, type ChildProcess } from 'node:child_process'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import type { KeyboardGuardConfig } from '../shared/settings'
@@ -13,7 +13,7 @@ let config: KeyboardGuardConfig = {
 }
 let inputPaused = false
 let shortcuts: ShortcutEntry[] = []
-let helper: ChildProcessWithoutNullStreams | null = null
+let helper: ChildProcess | null = null
 let actionHandler: ((action: string) => void) | null = null
 let restartTimer: NodeJS.Timeout | null = null
 
@@ -71,12 +71,12 @@ function startHelper(): void {
     const child = spawn(executable, buildArgs(), {
       windowsHide: true,
       stdio: ['ignore', 'pipe', 'pipe']
-    }) as ChildProcessWithoutNullStreams
+    })
     helper = child
 
     let stdoutBuffer = ''
-    child.stdout.setEncoding('utf8')
-    child.stdout.on('data', (chunk: string) => {
+    child.stdout?.setEncoding('utf8')
+    child.stdout?.on('data', (chunk: string) => {
       stdoutBuffer += chunk
       while (true) {
         const newline = stdoutBuffer.indexOf('\n')
@@ -88,8 +88,8 @@ function startHelper(): void {
         if (action) actionHandler?.(action)
       }
     })
-    child.stderr.setEncoding('utf8')
-    child.stderr.on('data', (chunk: string) => {
+    child.stderr?.setEncoding('utf8')
+    child.stderr?.on('data', (chunk: string) => {
       const message = chunk.trim()
       if (message) console.error(`keyboard-guard: ${message}`)
     })
