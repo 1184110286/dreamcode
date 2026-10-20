@@ -33,6 +33,23 @@ export interface KeyboardGuardConfig {
   blockRightCtrl: boolean
 }
 
+export type KeyboardGuardRuntimeState =
+  | 'unsupported'
+  | 'disabled'
+  | 'paused'
+  | 'idle'
+  | 'starting'
+  | 'active'
+  | 'missing-helper'
+  | 'error'
+
+export interface KeyboardGuardStatus {
+  state: KeyboardGuardRuntimeState
+  message: string
+  helperPath?: string
+  updatedAt: number
+}
+
 /**
  * Speech-to-text service. All but `grok2api` speak the OpenAI-compatible
  * POST {apiBaseURL}/audio/transcriptions; `grok2api` uses POST {apiBaseURL}/stt.
