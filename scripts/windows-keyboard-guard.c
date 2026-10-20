@@ -109,7 +109,7 @@ static int base64_value(char c) {
 }
 
 static int decode_base64(const char *input, unsigned char *output, int capacity) {
-  int val = 0;
+  unsigned int val = 0;
   int bits = -8;
   int out_len = 0;
   for (const char *p = input; *p; ++p) {
