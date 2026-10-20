@@ -68,6 +68,18 @@ export default function SettingsPage() {
     settingsStore.updateSetting('fontSize', fontSize)
   }
 
+  const handleKeyboardGuardChange = async (next: typeof keyboardGuard): Promise<void> => {
+    const previous = keyboardGuard
+    setKeyboardGuard(next)
+    try {
+      await settingsStore.saveSettings({ keyboardGuard: next })
+    } catch (error) {
+      setKeyboardGuard(previous)
+      toast.error(error instanceof Error ? error.message : '键盘防护设置保存失败，请重试')
+      throw error
+    }
+  }
+
   const handleSave = async (): Promise<void> => {
     if (saving.current) return
     saving.current = true
@@ -180,7 +192,7 @@ export default function SettingsPage() {
           <CustomShortcuts />
         </div>
 
-        <KeyboardGuardSettings value={keyboardGuard} onChange={setKeyboardGuard} />
+        <KeyboardGuardSettings value={keyboardGuard} onChange={handleKeyboardGuardChange} />
 
         <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-6 border border-gray-200/50 dark:border-gray-700/50">
           <h2 className="text-lg font-semibold mb-4 flex items-center">
