@@ -146,6 +146,20 @@ static void add_shortcut(const char *encoded) {
   g_shortcuts[g_shortcut_count++] = shortcut;
 }
 
+static UINT normalize_vk(const KBDLLHOOKSTRUCT *key) {
+  if (key->vkCode == VK_CONTROL) {
+    return (key->flags & LLKHF_EXTENDED) ? VK_RCONTROL : VK_LCONTROL;
+  }
+  if (key->vkCode == VK_MENU) {
+    return (key->flags & LLKHF_EXTENDED) ? VK_RMENU : VK_LMENU;
+  }
+  if (key->vkCode == VK_SHIFT) {
+    UINT mapped = MapVirtualKeyW(key->scanCode, MAPVK_VSC_TO_VK_EX);
+    if (mapped == VK_LSHIFT || mapped == VK_RSHIFT) return mapped;
+  }
+  return key->vkCode;
+}
+
 static int selected_ctrl_down(void) {
   return (g_block_left && g_left_down) || (g_block_right && g_right_down);
 }
@@ -169,7 +183,7 @@ static LRESULT CALLBACK keyboard_proc(int code, WPARAM wParam, LPARAM lParam) {
   if (code < 0) return CallNextHookEx(g_hook, code, wParam, lParam);
 
   KBDLLHOOKSTRUCT *key = (KBDLLHOOKSTRUCT *)lParam;
-  UINT vk = key->vkCode;
+  UINT vk = normalize_vk(key);
   int is_down = wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN;
   int is_up = wParam == WM_KEYUP || wParam == WM_SYSKEYUP;
 
